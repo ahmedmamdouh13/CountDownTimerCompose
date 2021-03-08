@@ -36,9 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-val DarkColorPalette = darkColors(
-
-)
+val DarkColorPalette = darkColors()
 
 val LightColorPalette = lightColors(
     primary = purple500,
@@ -68,15 +66,15 @@ fun MyTheme(content: @Composable() () -> Unit) {
 private val themeColorText = mutableStateOf("Dark")
 private val isChangeTheme = mutableStateOf(true)
 
-
 @Composable
 fun ThemeChanger() {
 
-    Box(modifier = Modifier.fillMaxWidth()
-        .fillMaxHeight().padding(10.dp)
-        ,contentAlignment = Alignment.TopEnd
+    Box(
+        modifier = Modifier.fillMaxWidth()
+            .fillMaxHeight().padding(10.dp),
+        contentAlignment = Alignment.TopEnd
 
-    ){
+    ) {
         Text(
             modifier = Modifier
 
@@ -86,25 +84,22 @@ fun ThemeChanger() {
                     0.5f
                 )
                 .clip(CircleShape)
-                .toggleable(isChangeTheme.value, onValueChange = {
-                    if (!it){
-                        themeColorText.value = "Dark"
-                        isChangeTheme.value = false
-                        colors.value = LightColorPalette
+                .toggleable(
+                    isChangeTheme.value,
+                    onValueChange = {
+                        if (!it) {
+                            themeColorText.value = "Dark"
+                            isChangeTheme.value = false
+                            colors.value = LightColorPalette
+                        } else {
+                            themeColorText.value = "Light"
+                            isChangeTheme.value = true
+                            colors.value = DarkColorPalette
+                        }
                     }
-                    else{
-                        themeColorText.value = "Light"
-                        isChangeTheme.value = true
-                        colors.value = DarkColorPalette
-                    }
-                }
 
-                ).padding(8.dp)
-
-            ,text = themeColorText.value
-            ,textAlign = TextAlign.Center
+                ).padding(8.dp),
+            text = themeColorText.value, textAlign = TextAlign.Center
         )
-
     }
-
 }

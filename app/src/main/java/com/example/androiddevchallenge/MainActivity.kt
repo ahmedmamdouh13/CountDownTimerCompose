@@ -19,22 +19,16 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.androiddevchallenge.ui.theme.*
+import com.example.androiddevchallenge.ui.theme.MyTheme
+import com.example.androiddevchallenge.ui.theme.ThemeChanger
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
@@ -43,8 +37,6 @@ class MainActivity : AppCompatActivity() {
         setContent {
             MyTheme {
                 MyApp()
-
-
             }
         }
     }
@@ -73,14 +65,12 @@ fun getCountDownTimer(time: Long, interval: Long): CountDownTimer {
                 timeSeconds.value += (1f)
             }
             timeMillis.value = seconds
-
         }
 
         override fun onFinish() {
             reset()
         }
     }
-
 }
 
 private var seconds = 1f
@@ -95,8 +85,8 @@ fun MyApp() {
             .fillMaxHeight()
     ) {
 
-
-        Timer(timeLarge = timeSeconds,
+        Timer(
+            timeLarge = timeSeconds,
             timeSmall = timeMillis,
             onChangeLarge = { timeSeconds.value += it },
             onChangeSmall = { timeMillis.value = it },
@@ -111,14 +101,11 @@ fun MyApp() {
                 } else {
                     value?.cancel()
                 }
-            })
+            }
+        )
 
         ThemeChanger()
-
-
-
     }
-
 }
 
 @Preview("Light Theme", widthDp = 360, heightDp = 640)

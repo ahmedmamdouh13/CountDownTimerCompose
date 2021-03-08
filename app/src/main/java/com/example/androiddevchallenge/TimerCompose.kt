@@ -1,12 +1,43 @@
+/*
+ * Copyright 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.androiddevchallenge
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollScope
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -16,7 +47,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
@@ -26,7 +58,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
-
 
 private var square = mutableStateOf(125f)
 private var counterType = mutableStateOf(CounterType.MinuteSecond)
@@ -51,29 +82,27 @@ fun Timer(
         val color2 = colorResource(id = R.color.purple_500)
         val color3 = colorResource(id = R.color.purple_700)
 
-        Canvas(modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(), onDraw = {
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            onDraw = {
 
-            drawLayers(
-                this,
-                timeLarge.value,
-                timeSmall.value,
-                arrayOf(color1, color2, color3)
-            )
-
-        })
-
+                drawLayers(
+                    this,
+                    timeLarge.value,
+                    timeSmall.value,
+                    arrayOf(color1, color2, color3)
+                )
+            }
+        )
 
         CustomTimeSelector(onChangeLarge, onChangeSmall)
 
         StartButton(onPlayPauseClicked)
 
         CounterTypeChooser(onPlayPauseClicked)
-
     }
-
-
 }
 
 private fun onTypeClicked(type: CounterType) {
@@ -103,7 +132,6 @@ private fun onTypeClicked(type: CounterType) {
     }
 }
 
-
 private fun drawLayers(
     drawScope: DrawScope,
     timeMinutes: Float,
@@ -115,7 +143,6 @@ private fun drawLayers(
     val minutes = (timeMinutes / 60) - 1
     val normalValue = timeSeconds / 60
 
-
     val widthProg = (square.value * (abs(minutes) - 1f)) + (normalValue)
     val heightProg = (square.value * (abs(minutes) - 1f)) + (normalValue)
 
@@ -126,7 +153,6 @@ private fun drawLayers(
         (minutes.toInt() - 1) % 2 == 0 -> 1
         else -> 2
     }
-
 
     drawScope.drawArc(
         colors[colorIndex],
@@ -140,7 +166,6 @@ private fun drawLayers(
         )
     )
 
-
     for (t in minutes.toInt() until 0) {
 
         val fl = 1f + t
@@ -151,13 +176,11 @@ private fun drawLayers(
         val left = width / 2f
         val top = height / 2f
 
-
         colorIndex = when {
             t % 3 == 0 -> 0
             t % 2 == 0 -> 1
             else -> 2
         }
-
 
         if (t > minutes - 1)
             drawScope.drawArc(
@@ -171,10 +194,7 @@ private fun drawLayers(
                     (drawScope.size.height / 2) - top
                 )
             )
-
-
     }
-
 }
 
 private var secondsCnt = 0f
@@ -205,42 +225,42 @@ private fun CustomTimeSelector(
 
     )
 
-    val secondsBehavior = Modifier.scrollable(ScrollableState {
-        if (isNotPlaying) {
-            if (it < 0) {
-                secondsCnt += 1f
-                if (secondsCnt >= 60f) {
-                    secondsCnt = 1f
-                    onChangeLarge(-2f)
-                } else {
-                    onChangeLarge(-1f)
-                }
-                onChangeSmall(secondsCnt)
-
-
-            } else {
-                secondsCnt -= 1f
-
-                if (timerTimeLarge.value.toInt() >= 0 && secondsCnt.toInt() <= 0) {
-                    secondsCnt = 0f
-                    onChangeSmall(0f)
-                    onChangeLarge(0f)
-                    return@ScrollableState 0f
-                } else {
-
-                    if (secondsCnt <= 0) {
-                        secondsCnt = 59f
-                        onChangeLarge(2f)
+    val secondsBehavior = Modifier.scrollable(
+        ScrollableState {
+            if (isNotPlaying) {
+                if (it < 0) {
+                    secondsCnt += 1f
+                    if (secondsCnt >= 60f) {
+                        secondsCnt = 1f
+                        onChangeLarge(-2f)
                     } else {
-                        onChangeLarge(1f)
+                        onChangeLarge(-1f)
                     }
                     onChangeSmall(secondsCnt)
+                } else {
+                    secondsCnt -= 1f
+
+                    if (timerTimeLarge.value.toInt() >= 0 && secondsCnt.toInt() <= 0) {
+                        secondsCnt = 0f
+                        onChangeSmall(0f)
+                        onChangeLarge(0f)
+                        return@ScrollableState 0f
+                    } else {
+
+                        if (secondsCnt <= 0) {
+                            secondsCnt = 59f
+                            onChangeLarge(2f)
+                        } else {
+                            onChangeLarge(1f)
+                        }
+                        onChangeSmall(secondsCnt)
+                    }
                 }
             }
-        }
-        0f
-    }, Orientation.Vertical)
-
+            0f
+        },
+        Orientation.Vertical
+    )
 
     Row(
         modifier = Modifier
@@ -251,10 +271,10 @@ private fun CustomTimeSelector(
             )
             .padding(5.dp)
             .width(150.dp)
-            .height(150.dp), horizontalArrangement = Arrangement.Center,
+            .height(150.dp),
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
 
         Text(
             text = (abs(timerTimeLarge.value) / 60).toInt().toDigitalFormat(),
@@ -267,10 +287,7 @@ private fun CustomTimeSelector(
             fontSize = 50.sp,
             modifier = secondsBehavior, color = Color.White
         )
-
-
     }
-
 }
 
 private val playPauseState = mutableStateOf(R.drawable.ic_baseline_play_arrow_24)
@@ -284,7 +301,8 @@ private fun StartButton(onPlayPauseClicked: (Boolean, Float, Float, Long) -> Uni
             .fillMaxWidth()
             .fillMaxHeight()
             .alpha(0.8f)
-            .padding(16.dp), contentAlignment = Alignment.BottomCenter
+            .padding(16.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
         Image(
             imageVector = ImageVector.vectorResource(id = playPauseState.value),
@@ -293,21 +311,20 @@ private fun StartButton(onPlayPauseClicked: (Boolean, Float, Float, Long) -> Uni
                 .background(Color.Black, shape = CircleShape)
                 .clip(CircleShape)
 
-                .toggleable(value = isNotPlaying, onValueChange = {
-                    if (!it) {
-                        play(onPlayPauseClicked)
-                    } else {
-                        pause(onPlayPauseClicked)
+                .toggleable(
+                    value = isNotPlaying,
+                    onValueChange = {
+                        if (!it) {
+                            play(onPlayPauseClicked)
+                        } else {
+                            pause(onPlayPauseClicked)
+                        }
                     }
-                })
+                )
                 .padding(10.dp)
 
-
         )
-
-
     }
-
 }
 
 // Counter type chooser for h:m
@@ -328,7 +345,8 @@ private fun CounterTypeChooser(
             .fillMaxWidth()
             .fillMaxHeight()
             .padding(horizontal = 8.dp)
-            .alpha(0.8f), contentAlignment = Alignment.CenterEnd
+            .alpha(0.8f),
+        contentAlignment = Alignment.CenterEnd
     ) {
         Column(
             modifier = Modifier
@@ -337,41 +355,51 @@ private fun CounterTypeChooser(
                     Brush.horizontalGradient(listOf(Color.Black, Color.Black)),
                     shape = RoundedCornerShape(50),
                     0.8f
-                ), horizontalAlignment = Alignment.CenterHorizontally
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "h:m", Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(topEndPercent = 50, topStartPercent = 50))
-                .background(Brush.horizontalGradient(listOf(color1, color1)))
-                .toggleable(true, role = Role.RadioButton) {
-                    onTypeClicked(CounterType.HourMinute)
-                    pause(onStartClick)
-                }
-                .padding(vertical = 16.dp), textAlign = TextAlign.Center, color = Color.White
+            Text(
+                text = "h:m",
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(topEndPercent = 50, topStartPercent = 50))
+                    .background(Brush.horizontalGradient(listOf(color1, color1)))
+                    .toggleable(true, role = Role.RadioButton) {
+                        onTypeClicked(CounterType.HourMinute)
+                        pause(onStartClick)
+                    }
+                    .padding(vertical = 16.dp),
+                textAlign = TextAlign.Center, color = Color.White
             )
-            Text(text = "m:s", Modifier
-                .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(color2, color2)))
-                .toggleable(true, role = Role.RadioButton) {
-                    onTypeClicked(CounterType.MinuteSecond)
-                    pause(onStartClick)
-                }
-                .padding(vertical = 16.dp), textAlign = TextAlign.Center, color = Color.White)
+            Text(
+                text = "m:s",
+                Modifier
+                    .fillMaxWidth()
+                    .background(Brush.horizontalGradient(listOf(color2, color2)))
+                    .toggleable(true, role = Role.RadioButton) {
+                        onTypeClicked(CounterType.MinuteSecond)
+                        pause(onStartClick)
+                    }
+                    .padding(vertical = 16.dp),
+                textAlign = TextAlign.Center, color = Color.White
+            )
 
-            Text(text = "s:ms", Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(bottomEndPercent = 50, bottomStartPercent = 50))
-                .background(Brush.horizontalGradient(listOf(color3, color3)))
-                .toggleable(true, role = Role.Checkbox) {
-                    onTypeClicked(CounterType.SecondMillisecond)
-                    pause(onStartClick)
-                }
-                .padding(vertical = 16.dp), textAlign = TextAlign.Center, color = Color.White)
+            Text(
+                text = "s:ms",
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(bottomEndPercent = 50, bottomStartPercent = 50))
+                    .background(Brush.horizontalGradient(listOf(color3, color3)))
+                    .toggleable(true, role = Role.Checkbox) {
+                        onTypeClicked(CounterType.SecondMillisecond)
+                        pause(onStartClick)
+                    }
+                    .padding(vertical = 16.dp),
+                textAlign = TextAlign.Center, color = Color.White
+            )
         }
     }
-
 }
-
 
 // controlling play, pause and reset
 
