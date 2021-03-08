@@ -15,40 +15,96 @@
  */
 package com.example.androiddevchallenge.ui.theme
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
-private val DarkColorPalette = darkColors(
-    primary = purple200,
-    primaryVariant = purple700,
-    secondary = teal200
+val DarkColorPalette = darkColors(
+
 )
 
-private val LightColorPalette = lightColors(
+val LightColorPalette = lightColors(
     primary = purple500,
-    primaryVariant = purple700,
-    secondary = teal200
+    primaryVariant = Color.White,
+    secondary = teal200,
 
-        /* Other default colors to override
     background = Color.White,
     surface = Color.White,
     onPrimary = Color.White,
     onSecondary = Color.Black,
     onBackground = Color.Black,
     onSurface = Color.Black,
-    */
 )
+val colors = mutableStateOf(DarkColorPalette)
 
 @Composable
 fun MyTheme(content: @Composable() () -> Unit) {
-    val colors = LightColorPalette
 
     MaterialTheme(
-        colors = colors,
+        colors = colors.value,
         typography = typography,
         shapes = shapes,
         content = content
     )
+}
+
+private val themeColorText = mutableStateOf("Light")
+private val isChangeTheme = mutableStateOf(true)
+
+
+@Composable
+fun ThemeChanger() {
+
+    Box(modifier = Modifier.fillMaxWidth()
+        .fillMaxHeight().padding(10.dp)
+        ,contentAlignment = Alignment.TopEnd
+
+    ){
+        Text(
+            modifier = Modifier
+
+                .background(
+                    Brush.horizontalGradient(listOf(Color.Black, Color.Black)),
+                    shape = CircleShape,
+                    0.5f
+                )
+                .clip(CircleShape)
+                .toggleable(isChangeTheme.value, onValueChange = {
+                    if (!it){
+                        themeColorText.value = "Dark"
+                        isChangeTheme.value = false
+                        colors.value = LightColorPalette
+                    }
+                    else{
+                        themeColorText.value = "Light"
+                        isChangeTheme.value = true
+                        colors.value = DarkColorPalette
+                    }
+                }
+
+                ).padding(8.dp)
+
+            ,text = themeColorText.value
+            ,textAlign = TextAlign.Center
+        )
+
+    }
+
 }

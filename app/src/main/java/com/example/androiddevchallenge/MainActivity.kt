@@ -19,13 +19,22 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.androiddevchallenge.ui.theme.MyTheme
+import androidx.compose.ui.unit.dp
+import com.example.androiddevchallenge.ui.theme.*
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
@@ -41,11 +50,10 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-val timeSeconds: MutableState<Float> = mutableStateOf(0.0f)
-val timeMillis: MutableState<Float> = mutableStateOf(0.0f)
-var l1 = 10 * 1000L
-
-var value: CountDownTimer? = null
+private val timeSeconds: MutableState<Float> = mutableStateOf(0.0f)
+private val timeMillis: MutableState<Float> = mutableStateOf(0.0f)
+private var l1 = 10 * 1000L
+private var value: CountDownTimer? = null
 
 fun getCountDownTimer(time: Long, interval: Long): CountDownTimer {
     return object : CountDownTimer(time, interval) {
@@ -70,8 +78,6 @@ fun getCountDownTimer(time: Long, interval: Long): CountDownTimer {
 
         override fun onFinish() {
             reset()
-
-            println("Finished!!! This is it!!!3")
         }
     }
 
@@ -90,22 +96,25 @@ fun MyApp() {
     ) {
 
 
-        Timer(timeSeconds.value, timeMillis.value,
-            { timeSeconds.value += it },
-            { timeMillis.value = it },
-            { isNotPlaying, time, secondsRemainder, interval ->
+        Timer(timeLarge = timeSeconds,
+            timeSmall = timeMillis,
+            onChangeLarge = { timeSeconds.value += it },
+            onChangeSmall = { timeMillis.value = it },
+            onPlayPauseClicked = { isNotPlaying, time, secondsRemainder, interval ->
 
-            seconds = secondsRemainder
-            l1 = abs(time.toLong()) * 1000L
-            println(" $l1  This is it!!!1")
+                seconds = secondsRemainder
+                l1 = abs(time.toLong()) * 1000L
 
-            if (!isNotPlaying && l1 != 0L) {
-                value = getCountDownTimer(l1, interval)
-                value?.start()
-            } else {
-                value?.cancel()
-            }
-        })
+                if (!isNotPlaying && l1 != 0L) {
+                    value = getCountDownTimer(l1, interval)
+                    value?.start()
+                } else {
+                    value?.cancel()
+                }
+            })
+
+        ThemeChanger()
+
 
 
     }

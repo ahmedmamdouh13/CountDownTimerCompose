@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,21 +28,22 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 
 
-var isLocked: Boolean = true
-const val margin: Float = 16.0f
-var square = mutableStateOf(150f)
-var counterType = mutableStateOf(CounterType.MinuteSecond)
-
+private var square = mutableStateOf(125f)
+private var counterType = mutableStateOf(CounterType.MinuteSecond)
+private var timerTimeLarge = mutableStateOf(0f)
+private var timerTimeSmall = mutableStateOf(0f)
 
 @Composable
 fun Timer(
-    timeMinutes: Float,
-    timeSeconds: Float,
-    onChangeMinutes: (Float) -> Unit,
-    onChangeSeconds: (Float) -> Unit,
-    onStartClick: (Boolean, Float, Float, Long) -> Unit
+    timeLarge: MutableState<Float>,
+    timeSmall: MutableState<Float>,
+    onChangeLarge: (Float) -> Unit,
+    onChangeSmall: (Float) -> Unit,
+    onPlayPauseClicked: (isNotPlaying: Boolean, timeLargeValue: Float, timeSmallValue: Float, timeInterval: Long) -> Unit
 ) {
 
+    timerTimeLarge = timeLarge
+    timerTimeSmall = timeSmall
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
 
@@ -53,71 +55,65 @@ fun Timer(
             .fillMaxWidth()
             .fillMaxHeight(), onDraw = {
 
-
-            drawLayer(this, timeMinutes, timeSeconds, arrayOf(color1, color2, color3))
-
-
-//            drawCircle(Color.Magenta, radius = size.minDimension / 3f)
-
-
-//            translate(left, top) {
-//
-//                drawLine(
-//                    Color.Black,
-//                    start = Offset.Zero,
-//                    end = Offset(
-//                        (this.size.width - margin) * sin(normalValue),
-//                        (this.size.height - margin) * cos(normalValue)
-//                    ),
-//                    strokeWidth = 10f,
-//                    pathEffect = PathEffect.cornerPathEffect(5f),
-//
-//                    cap = StrokeCap.Round
-//                )
-//
-//            }
+            drawLayers(
+                this,
+                timeLarge.value,
+                timeSmall.value,
+                arrayOf(color1, color2, color3)
+            )
 
         })
 
 
-        CustomTimeSelector(timeMinutes, timeSeconds, onChangeMinutes, onChangeSeconds)
+        CustomTimeSelector(onChangeLarge, onChangeSmall)
 
-        StartButton(onStartClick, timeMinutes, timeSeconds)
+        StartButton(onPlayPauseClicked)
 
-        CounterTypeChooser(onTypeClicked = onTypeClicked, onStartClick)
+        CounterTypeChooser(onPlayPauseClicked)
 
     }
 
 
 }
 
-val onTypeClicked: (CounterType) -> Unit = {
+private fun onTypeClicked(type: CounterType) {
+    val enabledColor = R.color.purple_500
+    val disabledColor = android.R.color.transparent
+    counterType.value = type
 
-    counterType.value = it
-
-    when(it){
+    when (type) {
         CounterType.HourMinute -> {
+            enabledColorHours.value = enabledColor
+            enabledColorMinutes.value = disabledColor
+            enabledColorSeconds.value = disabledColor
             square.value = 100f
         }
         CounterType.MinuteSecond -> {
+            enabledColorHours.value = disabledColor
+            enabledColorMinutes.value = enabledColor
+            enabledColorSeconds.value = disabledColor
             square.value = 125f
         }
         CounterType.SecondMillisecond -> {
+            enabledColorHours.value = disabledColor
+            enabledColorMinutes.value = disabledColor
+            enabledColorSeconds.value = enabledColor
             square.value = 150f
         }
     }
 }
 
-//val colorIndexMemory = arrayListOf<Int>()
 
-fun drawLayer(drawScope: DrawScope, timeMinutes: Float, timeSeconds: Float, colors: Array<Color>) {
+private fun drawLayers(
+    drawScope: DrawScope,
+    timeMinutes: Float,
+    timeSeconds: Float,
+    colors: Array<Color>
+) {
     var colorIndex: Int
 
     val minutes = (timeMinutes / 60) - 1
     val normalValue = timeSeconds / 60
-//    for (t in minutes.toInt() .. 0) {
-//        colorIndexMemory.add()
-//    }
 
 
     val widthProg = (square.value * (abs(minutes) - 1f)) + (normalValue)
@@ -147,7 +143,6 @@ fun drawLayer(drawScope: DrawScope, timeMinutes: Float, timeSeconds: Float, colo
 
     for (t in minutes.toInt() until 0) {
 
-//        drawScope.drawArc(color1, 0f, 360f * normalValue, true)
         val fl = 1f + t
 
         val width = (square.value * fl)
@@ -178,27 +173,16 @@ fun drawLayer(drawScope: DrawScope, timeMinutes: Float, timeSeconds: Float, colo
             )
 
 
-//        drawScope.drawArc(
-//            color3,
-//            0f,
-//            360f * normalValue,
-//            true,
-//            size = Size(drawScope.size.width / 3f, drawScope.size.height / 3f),
-//            topLeft = Offset(drawScope.size.width / 3f, drawScope.size.height / 3f)
-//        )
-//
     }
 
 }
 
-var secondsCnt = 0f
+private var secondsCnt = 0f
 
 @Composable
-fun CustomTimeSelector(
-    timeMinutes: Float,
-    timeSeconds: Float,
-    onChangeMinutes: (Float) -> Unit,
-    onChangeSeconds: (Float) -> Unit
+private fun CustomTimeSelector(
+    onChangeLarge: (Float) -> Unit,
+    onChangeSmall: (Float) -> Unit
 ) {
 
     val fling = object : FlingBehavior {
@@ -206,10 +190,10 @@ fun CustomTimeSelector(
 
             if (isNotPlaying) {
                 if (initialVelocity < 0) {
-                    onChangeMinutes(-60f)
+                    onChangeLarge(-60f)
                 } else {
-                    if (timeMinutes.toInt() <= -1)
-                        onChangeMinutes(60f)
+                    if (timerTimeLarge.value.toInt() <= -1)
+                        onChangeLarge(60f)
                 }
             }
             return 0f
@@ -220,18 +204,6 @@ fun CustomTimeSelector(
         ScrollState(0), flingBehavior = fling
 
     )
-//
-//    val minutesBehavior = Modifier.scrollable(ScrollableState {
-//
-//        if (it < 0) {
-//            onChangeMinutes(-60f)
-//        } else {
-//            onChangeMinutes(60f)
-//        }
-//
-//        0f
-//    }, Orientation.Vertical)
-
 
     val secondsBehavior = Modifier.scrollable(ScrollableState {
         if (isNotPlaying) {
@@ -239,30 +211,30 @@ fun CustomTimeSelector(
                 secondsCnt += 1f
                 if (secondsCnt >= 60f) {
                     secondsCnt = 1f
-                    onChangeMinutes(-2f)
+                    onChangeLarge(-2f)
                 } else {
-                    onChangeMinutes(-1f)
+                    onChangeLarge(-1f)
                 }
-                onChangeSeconds(secondsCnt)
+                onChangeSmall(secondsCnt)
 
 
-            } else  {
+            } else {
                 secondsCnt -= 1f
 
-                if (timeMinutes.toInt() >= 0 && secondsCnt.toInt() <= 0) {
+                if (timerTimeLarge.value.toInt() >= 0 && secondsCnt.toInt() <= 0) {
                     secondsCnt = 0f
-                    onChangeSeconds(0f)
-                    onChangeMinutes(0f)
+                    onChangeSmall(0f)
+                    onChangeLarge(0f)
                     return@ScrollableState 0f
                 } else {
 
                     if (secondsCnt <= 0) {
                         secondsCnt = 59f
-                        onChangeMinutes(2f)
+                        onChangeLarge(2f)
                     } else {
-                        onChangeMinutes(1f)
+                        onChangeLarge(1f)
                     }
-                    onChangeSeconds(secondsCnt)
+                    onChangeSmall(secondsCnt)
                 }
             }
         }
@@ -285,36 +257,34 @@ fun CustomTimeSelector(
 
 
         Text(
-            text = (abs(timeMinutes) / 60).toInt().toDigitalFormat(),
+            text = (abs(timerTimeLarge.value) / 60).toInt().toDigitalFormat(),
             fontSize = 50.sp,
-            modifier = minutesBehavior
-            ,color = Color.White
+            modifier = minutesBehavior, color = Color.White
         )
-        Text(text = ":", fontSize = 50.sp,color = Color.White)
+        Text(text = ":", fontSize = 50.sp, color = Color.White)
         Text(
-            text = (timeSeconds).toInt().toDigitalFormat(),
+            text = (timerTimeSmall.value).toInt().toDigitalFormat(),
             fontSize = 50.sp,
-            modifier = secondsBehavior
-            ,color = Color.White)
+            modifier = secondsBehavior, color = Color.White
+        )
 
 
     }
 
 }
 
-var playPauseState = mutableStateOf(R.drawable.ic_baseline_play_arrow_24)
-var isNotPlaying = true
+private val playPauseState = mutableStateOf(R.drawable.ic_baseline_play_arrow_24)
+private var isNotPlaying = true
 
 @Composable
-fun StartButton(onClick: (Boolean, Float, Float, Long) -> Unit, timeMinutes: Float, timeSeconds: Float) {
+private fun StartButton(onPlayPauseClicked: (Boolean, Float, Float, Long) -> Unit) {
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
             .alpha(0.8f)
-            .padding(16.dp)
-        , contentAlignment = Alignment.BottomCenter
+            .padding(16.dp), contentAlignment = Alignment.BottomCenter
     ) {
         Image(
             imageVector = ImageVector.vectorResource(id = playPauseState.value),
@@ -324,14 +294,10 @@ fun StartButton(onClick: (Boolean, Float, Float, Long) -> Unit, timeMinutes: Flo
                 .clip(CircleShape)
 
                 .toggleable(value = isNotPlaying, onValueChange = {
-                    onClick(it, timeMinutes, timeSeconds, counterType.value.getInterval())
                     if (!it) {
-                        playPauseState.value = R.drawable.ic_baseline_pause_24
-                        isNotPlaying = false
+                        play(onPlayPauseClicked)
                     } else {
-                        playPauseState.value = R.drawable.ic_baseline_play_arrow_24
-                        isNotPlaying = true
-
+                        pause(onPlayPauseClicked)
                     }
                 })
                 .padding(10.dp)
@@ -344,22 +310,19 @@ fun StartButton(onClick: (Boolean, Float, Float, Long) -> Unit, timeMinutes: Flo
 
 }
 
+// Counter type chooser for h:m
 
-
-
-val enabledColorHours = mutableStateOf(android.R.color.transparent)
-val enabledColorMinutes = mutableStateOf(R.color.purple_500)
-val enabledColorSeconds = mutableStateOf(android.R.color.transparent)
+private val enabledColorHours = mutableStateOf(android.R.color.transparent)
+private val enabledColorMinutes = mutableStateOf(R.color.purple_500)
+private val enabledColorSeconds = mutableStateOf(android.R.color.transparent)
 
 @Composable
-fun CounterTypeChooser(
-    onTypeClicked: (CounterType) -> Unit,
+private fun CounterTypeChooser(
     onStartClick: (Boolean, Float, Float, Long) -> Unit
 ) {
     val color1 = colorResource(id = enabledColorHours.value)
     val color2 = colorResource(id = enabledColorMinutes.value)
     val color3 = colorResource(id = enabledColorSeconds.value)
-    val enabledColor = R.color.purple_500
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -382,16 +345,9 @@ fun CounterTypeChooser(
                 .background(Brush.horizontalGradient(listOf(color1, color1)))
                 .toggleable(true, role = Role.RadioButton) {
                     onTypeClicked(CounterType.HourMinute)
-
                     pause(onStartClick)
-
-                    enabledColorHours.value = enabledColor
-                    enabledColorMinutes.value = android.R.color.transparent
-
-                    enabledColorSeconds.value = android.R.color.transparent
                 }
-                .padding(vertical = 16.dp), textAlign = TextAlign.Center
-                ,color = Color.White
+                .padding(vertical = 16.dp), textAlign = TextAlign.Center, color = Color.White
             )
             Text(text = "m:s", Modifier
                 .fillMaxWidth()
@@ -399,13 +355,8 @@ fun CounterTypeChooser(
                 .toggleable(true, role = Role.RadioButton) {
                     onTypeClicked(CounterType.MinuteSecond)
                     pause(onStartClick)
-
-                    enabledColorHours.value = android.R.color.transparent
-                    enabledColorMinutes.value = enabledColor
-
-                    enabledColorSeconds.value = android.R.color.transparent
                 }
-                .padding(vertical = 16.dp), textAlign = TextAlign.Center,color = Color.White)
+                .padding(vertical = 16.dp), textAlign = TextAlign.Center, color = Color.White)
 
             Text(text = "s:ms", Modifier
                 .fillMaxWidth()
@@ -414,37 +365,41 @@ fun CounterTypeChooser(
                 .toggleable(true, role = Role.Checkbox) {
                     onTypeClicked(CounterType.SecondMillisecond)
                     pause(onStartClick)
-
-
-                    enabledColorHours.value = android.R.color.transparent
-                    enabledColorMinutes.value = android.R.color.transparent
-
-                    enabledColorSeconds.value = enabledColor
-
                 }
-                .padding(vertical = 16.dp), textAlign = TextAlign.Center
-            ,color = Color.White)
+                .padding(vertical = 16.dp), textAlign = TextAlign.Center, color = Color.White)
         }
     }
 
 }
 
-fun pause(onStartClick: (Boolean, Float, Float, Long) -> Unit) {
+
+// controlling play, pause and reset
+
+private fun pause(onPlayPauseClicked: (Boolean, Float, Float, Long) -> Unit) {
     if (!isNotPlaying) {
-        onStartClick(true, 0f, 0f, 0L)
+        onPlayPauseClicked(true, 0f, 0f, 0L)
         isNotPlaying = true
         playPauseState.value = R.drawable.ic_baseline_play_arrow_24
     }
-
 }
 
+private fun play(onPlayPauseClicked: (Boolean, Float, Float, Long) -> Unit) {
+    if (isNotPlaying) {
+        onPlayPauseClicked(
+            false,
+            timerTimeLarge.value,
+            timerTimeSmall.value,
+            counterType.value.getInterval()
+        )
+        playPauseState.value = R.drawable.ic_baseline_pause_24
+        isNotPlaying = false
+    }
+}
 
-fun reset(){
-
-    timeMillis.value = 0.0f
-    timeSeconds.value = 0.0f
+fun reset() {
+    timerTimeLarge.value = 0.0f
+    timerTimeSmall.value = 0.0f
     secondsCnt = 0f
     isNotPlaying = true
     playPauseState.value = R.drawable.ic_baseline_play_arrow_24
-
 }
