@@ -52,7 +52,7 @@ val LightColorPalette = lightColors(
     onBackground = Color.Black,
     onSurface = Color.Black,
 )
-val colors = mutableStateOf(DarkColorPalette)
+val colors = mutableStateOf(LightColorPalette)
 
 @Composable
 fun MyTheme(content: @Composable() () -> Unit) {
@@ -65,7 +65,7 @@ fun MyTheme(content: @Composable() () -> Unit) {
     )
 }
 
-private val themeColorText = mutableStateOf("Light")
+private val themeColorText = mutableStateOf("Dark")
 private val isChangeTheme = mutableStateOf(true)
 
 
