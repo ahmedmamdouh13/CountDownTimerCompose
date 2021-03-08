@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyTheme() {
+            MyTheme {
                 MyApp()
 
 
@@ -124,14 +124,14 @@ fun MyApp() {
 @Preview("Light Theme", widthDp = 360, heightDp = 640)
 @Composable
 fun LightPreview() {
-    MyTheme() {
+    MyTheme {
         MyApp()
     }
 }
 
 @Composable
 fun DarkPreview() {
-    MyTheme() {
+    MyTheme {
         MyApp()
     }
 }
